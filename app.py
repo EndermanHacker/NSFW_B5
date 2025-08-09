@@ -4,30 +4,33 @@ import os
 
 app = Flask(__name__)
 
-api_token = os.environ.get("REPLICATE_API_TOKEN")
-client = replicate.Client(api_token=api_token)
+# ??????? ?? ?????? ???????
+MODEL_VERSION = "stability-ai/stable-diffusion-2-1@9936c12a1eeb3e2b8e634a676e1f362f7c7a9498f1e7847c6a088a9c216c24f1"
 
-# ???? ??????? ??????? ?? owner ? version
-version = "stability-ai/stable-diffusion-2-1@9936c12a1eeb3e2b8e634a676e1f362f7c7a9498f1e7847c6a088a9c216c24f1"
+# ??? ???? API ?? ????? ??????
+REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
+
+client = replicate.Client(api_token=REPLICATE_API_TOKEN)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    image_url = None
-    nsfw_enabled = False
+    output = None
     if request.method == "POST":
-        prompt = request.form.get("prompt", "")
+        prompt = request.form.get("prompt")
         nsfw_enabled = request.form.get("nsfw") == "on"
+        
+        # ??? ???? ????? ????? ?? ????? nsfw ??? ???????
+        # ??? ??????? ????? ??????? ?????? ???? ??????
 
-        if not nsfw_enabled:
-            prompt += ", safe content, no nudity"
+        try:
+            output = client.run(
+                MODEL_VERSION,
+                input={"prompt": prompt}
+            )
+        except Exception as e:
+            output = f"Error: {e}"
 
-        output = client.run(
-            version,
-            input={"prompt": prompt}
-        )
-        image_url = output[0]
-
-    return render_template("index.html", image_url=image_url, nsfw_enabled=nsfw_enabled)
+    return render_template("index.html", output=output)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
