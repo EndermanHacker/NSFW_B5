@@ -7,7 +7,8 @@ app = Flask(__name__)
 api_token = os.environ.get("REPLICATE_API_TOKEN")
 client = replicate.Client(api_token=api_token)
 
-version_id = "9936c12a1eeb3e2b8e634a676e1f362f7c7a9498f1e7847c6a088a9c216c24f1"
+# ???? ??????? ??????? ?? owner ? version
+version = "stability-ai/stable-diffusion-2-1@9936c12a1eeb3e2b8e634a676e1f362f7c7a9498f1e7847c6a088a9c216c24f1"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -21,7 +22,7 @@ def index():
             prompt += ", safe content, no nudity"
 
         output = client.run(
-            version_id,
+            version,
             input={"prompt": prompt}
         )
         image_url = output[0]
